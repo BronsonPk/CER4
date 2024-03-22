@@ -1,37 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CER1 Hotel to PSA Transportation Plan</title>
-    <style>
-        #map {
-            height: 500px;
-        }
-    </style>
+  <!-- ... your existing head content ... -->
 </head>
 <body>
-    <h1>CER1 Hotel to PSA Transportation Plan</h1>
-    <div>
-        <label for="hotel-select">Select Hotel:</label>
-        <select id="hotel-select"></select>
-    </div>
-    <div>
-        <label for="venue-select">Select Venue:</label>
-        <select id="venue-select"></select>
-    </div>
-    <div id="map"></div>
-    <div id="directions-panel"></div>
+  <!-- ... your existing body content ... -->
 
-    <script>
-        function initMap() {
-            console.log("initMap called");
-            const eventLocation = { lat: 48.8589507, lng: 2.2770205 };
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: eventLocation,
-                zoom: 13
-            });
-        }
+  <script>
+    function populateDropdowns(hotels, venues) {
+      // ... the populateDropdowns function code ...
+    }
+  </script>
+
+  <script>
+    const sheetId = '1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ';
+    const apiKey = 'AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM';
+    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?ranges=Hotels!A2:F&ranges=Venues!A2:F&key=${apiKey}`;
+
+    fetch(sheetUrl)
+      .then(response => response.json())
+      .then(data => {
+        const hotels = data.valueRanges[0].values;
+        const venues = data.valueRanges[1].values;
+        populateDropdowns(hotels, venues);
+      });
+  </script>
+</body>
+</html>
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
 </body>

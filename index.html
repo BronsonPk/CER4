@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CER1 Hotel to PSA Transportation Plan</title>
+    <style>
+        #map {
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CER1 Hotel to PSA Transportation Plan</h1>
+    <div>
+        <label for="hotel-select">Select Hotel:</label>
+        <select id="hotel-select"></select>
+    </div>
+    <div>
+        <label for="venue-select">Select Venue:</label>
+        <select id="venue-select"></select>
+    </div>
+    <div id="map"></div>
+    <div id="directions-panel"></div>
+
+    <script>
+        function initMap() {
+            console.log("initMap called");
+            const eventLocation = { lat: 48.8589507, lng: 2.2770205 };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: eventLocation,
+                zoom: 13
+            });
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
+</body>
+</html>

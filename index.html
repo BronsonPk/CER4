@@ -1,14 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- ... your existing head content ... -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CER1 Hotel to PSA Transportation Plan</title>
+  <style>
+    #map {
+      height: 500px;
+    }
+  </style>
 </head>
 <body>
-  <!-- ... your existing body content ... -->
+  <h1>CER1 Hotel to PSA Transportation Plan</h1>
+  <div>
+    <label for="hotel-select">Select Hotel:</label>
+    <select id="hotel-select"></select>
+  </div>
+  <div>
+    <label for="venue-select">Select Venue:</label>
+    <select id="venue-select"></select>
+  </div>
+  <div id="map"></div>
+  <div id="directions-panel"></div>
+
+  <script>
+    function initMap() {
+      console.log("initMap called");
+      const eventLocation = { lat: 48.8589507, lng: 2.2770205 };
+      const map = new google.maps.Map(document.getElementById("map"), {
+        center: eventLocation,
+        zoom: 13
+      });
+    }
+  </script>
 
   <script>
     function populateDropdowns(hotels, venues) {
-      // ... the populateDropdowns function code ...
+      const hotelSelect = document.getElementById('hotel-select');
+      const venueSelect = document.getElementById('venue-select');
+
+      hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel[0];
+        option.textContent = hotel[1];
+        hotelSelect.appendChild(option);
+      });
+
+      venues.forEach(venue => {
+        const option = document.createElement('option');
+        option.value = venue[0];
+        option.textContent = venue[1];
+        venueSelect.appendChild(option);
+      });
     }
   </script>
 
@@ -25,9 +68,7 @@
         populateDropdowns(hotels, venues);
       });
   </script>
-</body>
-</html>
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
 </body>
 </html>

@@ -57,32 +57,14 @@
                     name: row[1],
                     location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
                 }));
-                venues = venuesData.values.slice(1).map(row => {
-                    const lat = parseFloat(row[3]);
-                    const lng = parseFloat(row[2]);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        return {
-                            name: row[1],
-                            location: { lat, lng }
-                        };
-                    } else {
-                        console.warn(`Invalid location data for venue: ${row[1]}`);
-                        return null;
-                    }
-                }).filter(venue => venue !== null);
-                psas = psasData.values.slice(1).map(row => {
-                    const lat = parseFloat(row[3]);
-                    const lng = parseFloat(row[4]);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        return {
-                            name: row[1],
-                            location: { lat, lng }
-                        };
-                    } else {
-                        console.warn(`Invalid location data for PSA: ${row[1]}`);
-                        return null;
-                    }
-                }).filter(psa => psa !== null);
+                venues = venuesData.values.slice(1).map(row => ({
+                    name: row[1],
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
+                })).filter(venue => !isNaN(venue.location.lat) && !isNaN(venue.location.lng));
+                psas = psasData.values.slice(1).map(row => ({
+                    name: row[1],
+                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
+                })).filter(psa => !isNaN(psa.location.lat) && !isNaN(psa.location.lng));
 
                 populateDropdowns();
             })
@@ -173,7 +155,7 @@
             psas.forEach(psa => {
                 if (psa && psa.location) {
                     const distance = google.maps.geometry.spherical.computeDistanceBetween(
-                        new google.maps.LatLng(location.location),
+                        new google.maps.LatLng(location),
                         new google.maps.LatLng(psa.location)
                     );
 
@@ -195,7 +177,7 @@
                 const hotel = hotels.find(hotel => hotel.name === selectedHotel);
                 const venue = venues.find(venue => venue.name === selectedVenue);
                 if (hotel && hotel.location && venue && venue.location) {
-                    const psa = findNearestPSA(hotel);
+                    const psa = findNearestPSA(hotel.location);
                     if (psa && psa.location) {
                         if (psaMarker) {
                             psaMarker.setMap(null);

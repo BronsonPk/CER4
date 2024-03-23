@@ -70,5 +70,51 @@
   </script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
+  <script>
+  function generateRoute() {
+    const selectedHotel = document.getElementById('hotel-select').value;
+    const selectedVenue = document.getElementById('venue-select').value;
+
+    // Find the nearest PSA to the selected hotel
+    const nearestPSA = findNearestPSA(selectedHotel);
+
+    // Generate the route from the hotel to the nearest PSA
+    const hotelToPSARoute = getDirections(selectedHotel, nearestPSA);
+
+    // Generate the route from the PSA to the selected venue
+    const psaToVenueRoute = getDirections(nearestPSA, selectedVenue);
+
+    // Combine the two routes and display them on the map
+    displayRoute(hotelToPSARoute, psaToVenueRoute);
+  }
+
+  function findNearestPSA(hotelId) {
+    // Replace this with your logic to find the nearest PSA based on the selected hotel
+    // You can use the latitude and longitude data from your Google Sheet
+    // For now, let's assume the nearest PSA is "PSA1"
+    return "PSA1";
+  }
+
+  function getDirections(origin, destination) {
+    // Replace this with your logic to fetch directions using the Google Maps Directions API
+    // You'll need to use the latitude and longitude data from your Google Sheet
+    // For now, let's return a placeholder route
+    return {
+      origin: origin,
+      destination: destination,
+      path: [/* Array of coordinates representing the route */]
+    };
+  }
+
+  function displayRoute(hotelToPSARoute, psaToVenueRoute) {
+    // Replace this with your logic to display the routes on the map
+    // You can use the Google Maps JavaScript API to draw the routes
+    console.log("Hotel to PSA Route:", hotelToPSARoute);
+    console.log("PSA to Venue Route:", psaToVenueRoute);
+  }
+
+  document.getElementById('hotel-select').addEventListener('change', generateRoute);
+  document.getElementById('venue-select').addEventListener('change', generateRoute);
+</script>
 </body>
 </html>

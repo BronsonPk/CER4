@@ -1,170 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CER1 Hotel to PSA Transportation Plan</title>
-  <style>
-    #map {
-      height: 500px;
-    }
-  </style>
+    <title>Paris Olympic Opening Ceremony Transportation Planner</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-  <h1>CER1 Hotel to PSA Transportation Plan</h1>
-  <div>
-    <label for="hotel-select">Select Hotel:</label>
-    <select id="hotel-select">
-      <option value="">Choose a hotel</option>
-    </select>
-  </div>
-  <div>
-    <label for="venue-select">Select Venue:</label>
-    <select id="venue-select">
-      <option value="">Choose a venue</option>
-    </select>
-  </div>
-  <div id="map"></div>
-  <div id="directions-panel"></div>
+    <div class="container">
+        <h1>Paris Olympic Opening Ceremony Transportation Planner</h1>
+        <div class="form-group">
+            <label for="hotel-select">Select Hotel:</label>
+            <select class="form-control" id="hotel-select"></select>
+        </div>
+        <div class="form-group">
+            <label for="venue-select">Select Venue:</label>
+            <select class="form-control" id="venue-select"></select>
+        </div>
+        <div id="map"></div>
+    </div>
 
-  <script>
-    function populateDropdowns(hotels, venues) {
-      const hotelSelect = document.getElementById('hotel-select');
-      const venueSelect = document.getElementById('venue-select');
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let map;
+        let hotels = [];
+        let venues = [];
+        let psas = [];
+        let hotelMarker;
+        let venueMarker;
 
-      hotels.forEach(hotel => {
-        const option = document.createElement('option');
-        option.value = hotel[0];
-        option.textContent = hotel[1];
-        hotelSelect.appendChild(option);
-      });
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 48.8566, lng: 2.3522 },
+                zoom: 12
+            });
 
-      venues.forEach(venue => {
-        const option = document.createElement('option');
-        option.value = venue[0];
-        option.textContent = venue[1];
-        venueSelect.appendChild(option);
-      });
-    }
+            const infoWindow = new google.maps.InfoWindow();
 
-    const sheetId = '1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ';
-    const apiKey = 'AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM';
-    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?ranges=Hotels!A2:F&ranges=Venues!A2:F&ranges=PSAs!A2:D&key=${apiKey}`;
+            Promise.all([
+                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
+                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
+                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/PSAs?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM')
+            ])
+            .then(([hotelsResponse, venuesResponse, psasResponse]) => Promise.all([hotelsResponse.json(), venuesResponse.json(), psasResponse.json()]))
+            .then(([hotelsData, venuesData, psasData]) => {
+                hotels = hotelsData.values.slice(1).map(row => ({
+                    name: row[0],
+                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                }));
+                venues = venuesData.values.slice(1).map(row => ({
+                    name: row[0],
+                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                }));
+                psas = psasData.values.slice(1).map(row => ({
+                    name: row[0],
+                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                }));
 
-    let map;
-    let directionsRenderer;
-
-    fetch(sheetUrl)
-      .then(response => response.json())
-      .then(data => {
-        const hotels = data.valueRanges[0].values;
-        const venues = data.valueRanges[1].values;
-        const psas = data.valueRanges[2].values;
-        populateDropdowns(hotels, venues);
-        initMap(hotels, venues, psas);
-      });
-
-    function initMap(hotels, venues, psas) {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 48.8589507, lng: 2.2770205 },
-        zoom: 13
-      });
-      directionsRenderer = new google.maps.DirectionsRenderer();
-      directionsRenderer.setMap(map);
-    }
-
-    function generateRoute() {
-      const selectedHotel = document.getElementById('hotel-select').value;
-      const selectedVenue = document.getElementById('venue-select').value;
-
-      if (selectedHotel && selectedVenue) {
-        const nearestPSA = findNearestPSA(selectedHotel);
-        const hotelToPSARoute = getDirections(selectedHotel, nearestPSA);
-        const psaToVenueRoute = getDirections(nearestPSA, selectedVenue);
-        displayRoute(hotelToPSARoute, psaToVenueRoute);
-      }
-    }
-
-    function findNearestPSA(hotelId) {
-      const hotel = hotels.find(h => h[0] === hotelId);
-      const hotelLat = parseFloat(hotel[4]);
-      const hotelLng = parseFloat(hotel[5]);
-      let nearestPSA = null;
-      let minDistance = Infinity;
-
-      for (const psa of psas) {
-        const psaLat = parseFloat(psa[2]);
-        const psaLng = parseFloat(psa[3]);
-        const distance = getDistance(hotelLat, hotelLng, psaLat, psaLng);
-
-        if (distance < minDistance) {
-          minDistance = distance;
-          nearestPSA = psa[0];
+                populateDropdowns();
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
         }
-      }
 
-      return nearestPSA;
-    }
+        function populateDropdowns() {
+            const hotelSelect = document.getElementById('hotel-select');
+            const venueSelect = document.getElementById('venue-select');
 
-    function getDistance(lat1, lng1, lat2, lng2) {
-      const R = 6371; // Earth's radius in kilometers
-      const dLat = toRad(lat2 - lat1);
-      const dLng = toRad(lng2 - lng1);
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = R * c;
-      return distance;
-    }
+            hotels.forEach(hotel => {
+                const option = document.createElement('option');
+                option.value = hotel.name;
+                option.textContent = hotel.name;
+                hotelSelect.appendChild(option);
+            });
 
-    function toRad(degrees) {
-      return degrees * (Math.PI / 180);
-    }
+            venues.forEach(venue => {
+                const option = document.createElement('option');
+                option.value = venue.name;
+                option.textContent = venue.name;
+                venueSelect.appendChild(option);
+            });
 
-    function getDirections(origin, destination) {
-      const directionsService = new google.maps.DirectionsService();
-      const request = {
-        origin: getLatLng(origin),
-        destination: getLatLng(destination),
-        travelMode: 'DRIVING'
-      };
-
-      return new Promise((resolve, reject) => {
-        directionsService.route(request, (result, status) => {
-          if (status === 'OK') {
-            resolve(result);
-          } else {
-            reject(new Error('Directions request failed due to ' + status));
-          }
-        });
-      });
-    }
-
-    function getLatLng(locationId) {
-      const location = [...hotels, ...psas, ...venues].find(l => l[0] === locationId);
-      return { lat: parseFloat(location[4]), lng: parseFloat(location[5]) };
-    }
-
-    function displayRoute(hotelToPSARoute, psaToVenueRoute) {
-      const directionsRenderer = new google.maps.DirectionsRenderer();
-      directionsRenderer.setMap(map);
-      directionsRenderer.setDirections(hotelToPSARoute);
-
-      const directionsRenderer2 = new google.maps.DirectionsRenderer({
-        polylineOptions: {
-          strokeColor: 'blue'
+            hotelSelect.addEventListener('change', displayRoute);
+            venueSelect.addEventListener('change', displayRoute);
         }
-      });
-      directionsRenderer2.setMap(map);
-      directionsRenderer2.setDirections(psaToVenueRoute);
-    }
 
-    document.getElementById('hotel-select').addEventListener('change', generateRoute);
-    document.getElementById('venue-select').addEventListener('change', generateRoute);
-  </script>
+        function findNearestPSA(location) {
+            let nearestPSA = null;
+            let minDistance = Infinity;
 
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM" async defer></script>
+            psas.forEach(psa => {
+                const distance = google.maps.geometry.spherical.computeDistanceBetween(
+                    new google.maps.LatLng(location.location),
+                    new google.maps.LatLng(psa.location)
+                );
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearestPSA = psa;
+                }
+            });
+
+            return nearestPSA;
+        }
+
+        function displayRoute() {
+            const selectedHotel = document.getElementById('hotel-select').value;
+            const selectedVenue = document.getElementById('venue-select').value;
+
+            if (selectedHotel && selectedVenue) {
+                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+                const venue = venues.find(venue => venue.name === selectedVenue);
+                const psa = findNearestPSA(hotel);
+
+                if (hotelMarker) {
+                    hotelMarker.setMap(null);
+                }
+                if (venueMarker) {
+                    venueMarker.setMap(null);
+                }
+
+                hotelMarker = new google.maps.Marker({
+                    position: hotel.location,
+                    map: map,
+                    title: hotel.name
+                });
+
+                venueMarker = new google.maps.Marker({
+                    position: venue.location,
+                    map: map,
+                    title: venue.name
+                });
+
+                const directionsService = new google.maps.DirectionsService();
+                const directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+
+                const waypoints = [{ location: psa.location, stopover: true }];
+
+                const request = {
+                    origin: hotel.location,
+                    destination: venue.location,
+                    waypoints: waypoints,
+                    optimizeWaypoints: true,
+                    travelMode: 'DRIVING'
+                };
+
+                directionsService.route(request, function(result, status) {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(result);
+                    }
+                });
+
+                const bounds = new google.maps.LatLngBounds();
+                bounds.extend(hotel.location);
+                bounds.extend(venue.location);
+
+                const infoWindow = new google.maps.InfoWindow();
+                infoWindow.setContent(`<b>Hotel:</b> ${hotel.name}<br><b>Venue:</b> ${venue.name}`);
+                infoWindow.open(map, hotelMarker);
+
+                map.fitBounds(bounds);
+            }
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap&libraries=geometry" async defer></script>
 </body>
 </html>

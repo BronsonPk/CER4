@@ -23,6 +23,7 @@
             <label for="venue-select">Select Venue:</label>
             <select class="form-control" id="venue-select"></select>
         </div>
+        <button class="btn btn-primary" id="calculate-route-btn">Calculate Best Route</button>
         <div id="map"></div>
     </div>
 
@@ -36,6 +37,8 @@
         let psas = [];
         let hotelMarker;
         let venueMarker;
+        let psaMarker;
+        let directionsRenderer;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
@@ -100,8 +103,45 @@
                 venueSelect.appendChild(option);
             });
 
-            hotelSelect.addEventListener('change', displayRoute);
-            venueSelect.addEventListener('change', displayRoute);
+            hotelSelect.addEventListener('change', showHotelMarker);
+            venueSelect.addEventListener('change', showVenueMarker);
+            document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
+        }
+
+        function showHotelMarker() {
+            const selectedHotel = document.getElementById('hotel-select').value;
+            if (selectedHotel) {
+                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+                if (hotelMarker) {
+                    hotelMarker.setMap(null);
+                }
+                hotelMarker = new google.maps.Marker({
+                    position: hotel.location,
+                    map: map,
+                    title: hotel.name,
+                    icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                });
+                map.setCenter(hotel.location);
+                map.setZoom(14);
+            }
+        }
+
+        function showVenueMarker() {
+            const selectedVenue = document.getElementById('venue-select').value;
+            if (selectedVenue) {
+                const venue = venues.find(venue => venue.name === selectedVenue);
+                if (venueMarker) {
+                    venueMarker.setMap(null);
+                }
+                venueMarker = new google.maps.Marker({
+                    position: venue.location,
+                    map: map,
+                    title: venue.name,
+                    icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                });
+                map.setCenter(venue.location);
+                map.setZoom(14);
+            }
         }
 
         function findNearestPSA(location) {
@@ -123,7 +163,7 @@
             return nearestPSA;
         }
 
-        function displayRoute() {
+        function calculateRoute() {
             const selectedHotel = document.getElementById('hotel-select').value;
             const selectedVenue = document.getElementById('venue-select').value;
 
@@ -132,27 +172,10 @@
                 const venue = venues.find(venue => venue.name === selectedVenue);
                 const psa = findNearestPSA(hotel);
 
-                if (hotelMarker) {
-                    hotelMarker.setMap(null);
+                if (psaMarker) {
+                    psaMarker.setMap(null);
                 }
-                if (venueMarker) {
-                    venueMarker.setMap(null);
-                }
-
-                hotelMarker = new google.maps.Marker({
-                    position: hotel.location,
-                    map: map,
-                    title: hotel.name
-                });
-
-                venueMarker = new google.maps.Marker({
-                    position: venue.location,
-                    map: map,
-                    title: venue.name
-                });
-
-                // Add PSA marker
-                const psaMarker = new google.maps.Marker({
+                psaMarker = new google.maps.Marker({
                     position: psa.location,
                     map: map,
                     title: psa.name,
@@ -160,7 +183,10 @@
                 });
 
                 const directionsService = new google.maps.DirectionsService();
-                const directionsRenderer = new google.maps.DirectionsRenderer();
+                if (directionsRenderer) {
+                    directionsRenderer.setMap(null);
+                }
+                directionsRenderer = new google.maps.DirectionsRenderer();
                 directionsRenderer.setMap(map);
 
                 const waypoints = [{ location: psa.location, stopover: true }];
@@ -182,11 +208,6 @@
                 const bounds = new google.maps.LatLngBounds();
                 bounds.extend(hotel.location);
                 bounds.extend(venue.location);
-
-                const infoWindow = new google.maps.InfoWindow();
-                infoWindow.setContent(`<b>Hotel:</b> ${hotel.name}<br><b>Venue:</b> ${venue.name}`);
-                infoWindow.open(map, hotelMarker);
-
                 map.fitBounds(bounds);
             }
         }

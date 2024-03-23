@@ -287,4 +287,96 @@
         }
 
         function calculateRoute() {
-            const selectedHotel = document
+            const selectedHotel = document.getElementById('hotel-select').value;
+            const selectedVenue = document.getElementById('venue-select').value;
+
+            if (selectedHotel && selectedVenue) {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address: selectedHotel }, function(hotelResults, hotelStatus) {
+                    if (hotelStatus === 'OK') {
+                        const hotelLocation = hotelResults[0].geometry.location;
+                        geocoder.geocode({ address: selectedVenue }, function(venueResults, venueStatus) {
+                            if (venueStatus === 'OK') {
+                                const venueLocation = venueResults[0].geometry.location;
+                                const psa = findNearestPSA(hotelLocation);
+                                if (psa && psa.location) {
+                                    if (psaMarker) {
+                                        psaMarker.setMap(null);
+                                    }
+                                    psaMarker = new google.maps.Marker({
+                                        map: map,
+                                        position: psa.location,
+                                        title: 'PSA',
+                                        icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                                    });
+
+                                    if (directionsRenderer) {
+                                        directionsRenderer.setMap(null);
+                                        directionsRenderer.setPanel(null);
+                                    }
+                                    directionsRenderer = new google.maps.DirectionsRenderer();
+                                    directionsRenderer.setMap(map);
+                                    directionsRenderer.setPanel(document.getElementById('directions-panel'));
+
+                                    const waypoints = [{ location: psa.location, stopover: true }];
+
+                                    const request = {
+                                        origin: hotelLocation,
+                                        destination: venueLocation,
+                                        waypoints: waypoints,
+                                        optimizeWaypoints: true,
+                                        travelMode: 'DRIVING'
+                                    };
+
+                                    directionsService.route(request, function(result, status) {
+                                        if (status === 'OK') {
+                                            directionsRenderer.setDirections(result);
+                                            const bounds = new google.maps.LatLngBounds();
+                                            bounds.extend(hotelLocation);
+                                            bounds.extend(venueLocation);
+                                            map.fitBounds(bounds);
+
+                                            // Display total trip time
+                                            const totalDuration = result.routes[0].legs.reduce((total, leg) => total + leg.duration.value, 0);
+                                            const totalDurationText = formatDuration(totalDuration);
+                                            document.getElementById('directions-panel').insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
+                                        } else {
+                                            console.error('Error calculating route:', status);
+                                        }
+                                    });
+                                } else {
+                                    console.error('Nearest PSA not found or missing location data');
+                                }
+                            } else {
+                                console.error('Geocode was not successful for the venue for the following reason:', venueStatus);
+                            }
+                        });
+                    } else {
+                        console.error('Geocode was not successful for the hotel for the following reason:', hotelStatus);
+                    }
+                });
+            }
+        }
+
+        function formatDuration(durationInSeconds) {
+            const hours = Math.floor(durationInSeconds / 3600);
+            const minutes = Math.floor((durationInSeconds % 3600) / 60);
+            const seconds = durationInSeconds % 60;
+
+            let durationText = '';
+            if (hours > 0) {
+                durationText += `${hours} hour${hours > 1 ? 's' : ''} `;
+            }
+            if (minutes > 0) {
+                durationText += `${minutes} minute${minutes > 1 ? 's' : ''} `;
+            }
+            if (seconds > 0) {
+                durationText += `${seconds} second${seconds > 1 ? 's' : ''}`;
+            }
+
+            return durationText.trim();
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
+</body>
+</html>

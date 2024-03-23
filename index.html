@@ -52,11 +52,86 @@
 
             // Define the coordinates for the security perimeter
             const securityPerimeterCoords = [
-                { lat: 48.86109, lng: 2.29588 },
-                { lat: 48.86035, lng: 2.29643 },
-                { lat: 48.85971, lng: 2.29781 },
-                { lat: 48.85863, lng: 2.29976 }
-                // Add more coordinate pairs as needed
+                { lat: 48.86168, lng: 2.29452 },
+                { lat: 48.86072, lng: 2.29675 },
+                { lat: 48.85856, lng: 2.30022 },
+                { lat: 48.85725, lng: 2.30239 },
+                { lat: 48.85635, lng: 2.30389 },
+                { lat: 48.85504, lng: 2.30583 },
+                { lat: 48.85429, lng: 2.30687 },
+                { lat: 48.85344, lng: 2.30737 },
+                { lat: 48.85285, lng: 2.30771 },
+                { lat: 48.85208, lng: 2.30758 },
+                { lat: 48.85119, lng: 2.30765 },
+                { lat: 48.85038, lng: 2.30797 },
+                { lat: 48.84932, lng: 2.30824 },
+                { lat: 48.84825, lng: 2.30838 },
+                { lat: 48.84706, lng: 2.30829 },
+                { lat: 48.84576, lng: 2.30793 },
+                { lat: 48.84447, lng: 2.30769 },
+                { lat: 48.84329, lng: 2.30772 },
+                { lat: 48.84221, lng: 2.30804 },
+                { lat: 48.84117, lng: 2.30843 },
+                { lat: 48.84011, lng: 2.30863 },
+                { lat: 48.83912, lng: 2.30849 },
+                { lat: 48.83815, lng: 2.30846 },
+                { lat: 48.83728, lng: 2.30864 },
+                { lat: 48.83631, lng: 2.30907 },
+                { lat: 48.83547, lng: 2.30965 },
+                { lat: 48.83468, lng: 2.31012 },
+                { lat: 48.83387, lng: 2.31053 },
+                { lat: 48.83314, lng: 2.31099 },
+                { lat: 48.83242, lng: 2.31164 },
+                { lat: 48.83191, lng: 2.31239 },
+                { lat: 48.83161, lng: 2.31316 },
+                { lat: 48.83152, lng: 2.31397 },
+                { lat: 48.83164, lng: 2.31473 },
+                { lat: 48.83184, lng: 2.31564 },
+                { lat: 48.83224, lng: 2.31645 },
+                { lat: 48.83274, lng: 2.31719 },
+                { lat: 48.83328, lng: 2.31783 },
+                { lat: 48.83401, lng: 2.31843 },
+                { lat: 48.83489, lng: 2.31899 },
+                { lat: 48.83584, lng: 2.31945 },
+                { lat: 48.83698, lng: 2.31973 },
+                { lat: 48.83809, lng: 2.31996 },
+                { lat: 48.83929, lng: 2.32023 },
+                { lat: 48.84042, lng: 2.32045 },
+                { lat: 48.84162, lng: 2.32044 },
+                { lat: 48.84278, lng: 2.32023 },
+                { lat: 48.84391, lng: 2.31983 },
+                { lat: 48.84501, lng: 2.31931 },
+                { lat: 48.84615, lng: 2.31899 },
+                { lat: 48.84725, lng: 2.31888 },
+                { lat: 48.84832, lng: 2.31887 },
+                { lat: 48.84936, lng: 2.31884 },
+                { lat: 48.85038, lng: 2.31866 },
+                { lat: 48.85144, lng: 2.31832 },
+                { lat: 48.85253, lng: 2.31787 },
+                { lat: 48.85355, lng: 2.31741 },
+                { lat: 48.85457, lng: 2.31702 },
+                { lat: 48.85565, lng: 2.31687 },
+                { lat: 48.85675, lng: 2.31695 },
+                { lat: 48.85775, lng: 2.31711 },
+                { lat: 48.85889, lng: 2.31732 },
+                { lat: 48.86, lng: 2.31744 },
+                { lat: 48.86112, lng: 2.31722 },
+                { lat: 48.86215, lng: 2.31661 },
+                { lat: 48.86301, lng: 2.31587 },
+                { lat: 48.86378, lng: 2.31516 },
+                { lat: 48.86451, lng: 2.31446 },
+                { lat: 48.86512, lng: 2.31367 },
+                { lat: 48.86561, lng: 2.31279 },
+                { lat: 48.86594, lng: 2.31185 },
+                { lat: 48.86609, lng: 2.31093 },
+                { lat: 48.86626, lng: 2.30997 },
+                { lat: 48.86627, lng: 2.30903 },
+                { lat: 48.86598, lng: 2.30818 },
+                { lat: 48.86537, lng: 2.30751 },
+                { lat: 48.86456, lng: 2.30695 },
+                { lat: 48.86366, lng: 2.30632 },
+                { lat: 48.86276, lng: 2.30565 },
+                { lat: 48.86186, lng: 2.30491 }
             ];
 
             // Create a new polygon for the security perimeter
@@ -212,122 +287,4 @@
         }
 
         function calculateRoute() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            const selectedVenue = document.getElementById('venue-select').value;
-
-            if (selectedHotel && selectedVenue) {
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ address: selectedHotel }, function(hotelResults, hotelStatus) {
-                    if (hotelStatus === 'OK') {
-                        const hotelLocation = hotelResults[0].geometry.location;
-                        geocoder.geocode({ address: selectedVenue }, function(venueResults, venueStatus) {
-                            if (venueStatus === 'OK') {
-                                const venueLocation = venueResults[0].geometry.location;
-                                const psa = findNearestPSA(hotelLocation);
-                                if (psa && psa.location) {
-                                    if (psaMarker) {
-                                        psaMarker.setMap(null);
-                                    }
-                                    psaMarker = new google.maps.Marker({
-                                        map: map,
-                                        position: psa.location,
-                                        title: 'PSA',
-                                        icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                                    });
-
-                                    if (directionsRenderer) {
-                                        directionsRenderer.setMap(null);
-                                        directionsRenderer.setPanel(null);
-                                    }
-                                    directionsRenderer = new google.maps.DirectionsRenderer();
-                                    directionsRenderer.setMap(map);
-                                    directionsRenderer.setPanel(document.getElementById('directions-panel'));
-
-                                    const hotelToPSARenderer = new google.maps.DirectionsRenderer({
-                                        polylineOptions: {
-                                            strokeColor: 'blue'
-                                        },
-                                        suppressMarkers: true
-                                    });
-                                    const psaToVenueRenderer = new google.maps.DirectionsRenderer({
-                                        polylineOptions: {
-                                            strokeColor: 'green'
-                                        },
-                                        suppressMarkers: true
-                                    });
-
-                                    const hotelToPSARequest = {
-                                        origin: hotelLocation,
-                                        destination: psa.location,
-                                        travelMode: 'DRIVING'
-                                    };
-
-                                    const psaToVenueRequest = {
-                                        origin: psa.location,
-                                        destination: venueLocation,
-                                        travelMode: 'DRIVING'
-                                    };
-
-                                    directionsService.route(hotelToPSARequest, function(hotelToPSAResult, hotelToPSAStatus) {
-                                        if (hotelToPSAStatus === 'OK') {
-                                            hotelToPSARenderer.setDirections(hotelToPSAResult);
-                                            hotelToPSARenderer.setMap(map);
-
-                                            directionsService.route(psaToVenueRequest, function(psaToVenueResult, psaToVenueStatus) {
-                                                if (psaToVenueStatus === 'OK') {
-                                                    psaToVenueRenderer.setDirections(psaToVenueResult);
-                                                    psaToVenueRenderer.setMap(map);
-
-                                                    const bounds = new google.maps.LatLngBounds();
-                                                    bounds.extend(hotelLocation);
-                                                    bounds.extend(venueLocation);
-                                                    map.fitBounds(bounds);
-
-                                                    // Display total trip time
-                                                    const totalDuration = hotelToPSAResult.routes[0].legs[0].duration.value + psaToVenueResult.routes[0].legs[0].duration.value;
-                                                    const totalDurationText = formatDuration(totalDuration);
-                                                    document.getElementById('directions-panel').insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
-                                                } else {
-                                                    console.error('Error calculating PSA to Venue route:', psaToVenueStatus);
-                                                }
-                                            });
-                                        } else {
-                                            console.error('Error calculating Hotel to PSA route:', hotelToPSAStatus);
-                                        }
-                                    });
-                                } else {
-                                    console.error('Nearest PSA not found or missing location data');
-                                }
-                            } else {
-                                console.error('Geocode was not successful for the venue for the following reason:', venueStatus);
-                            }
-                        });
-                    } else {
-                        console.error('Geocode was not successful for the hotel for the following reason:', hotelStatus);
-                    }
-                });
-            }
-        }
-
-        function formatDuration(durationInSeconds) {
-            const hours = Math.floor(durationInSeconds / 3600);
-            const minutes = Math.floor((durationInSeconds % 3600) / 60);
-            const seconds = durationInSeconds % 60;
-
-            let durationText = '';
-            if (hours > 0) {
-                durationText += `${hours} hour${hours > 1 ? 's' : ''} `;
-            }
-            if (minutes > 0) {
-                durationText += `${minutes} minute${minutes > 1 ? 's' : ''} `;
-            }
-            if (seconds > 0) {
-                durationText += `${seconds} second${seconds > 1 ? 's' : ''}`;
-            }
-
-            return durationText.trim();
-        }
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
-</body>
-</html>
+            const selectedHotel = document

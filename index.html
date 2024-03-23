@@ -47,14 +47,20 @@
             });
 
             Promise.all([
-                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels!C2:C51?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
-                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues!C2:C17?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
+                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels!B2:C51?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
+                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues!B2:C17?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/PSAs?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM')
             ])
             .then(([hotelsResponse, venuesResponse, psasResponse]) => Promise.all([hotelsResponse.json(), venuesResponse.json(), psasResponse.json()]))
             .then(([hotelsData, venuesData, psasData]) => {
-                hotels = hotelsData.values.map(row => row[0]);
-                venues = venuesData.values.map(row => row[0]);
+                hotels = hotelsData.values.map(row => ({
+                    name: row[0],
+                    address: row[1]
+                }));
+                venues = venuesData.values.map(row => ({
+                    name: row[0],
+                    address: row[1]
+                }));
                 psas = psasData.values.slice(1).map(row => ({
                     name: row[1],
                     location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
@@ -89,15 +95,15 @@
 
             hotels.forEach(hotel => {
                 const option = document.createElement('option');
-                option.value = hotel;
-                option.textContent = hotel;
+                option.value = hotel.address;
+                option.textContent = hotel.name;
                 hotelSelect.appendChild(option);
             });
 
             venues.forEach(venue => {
                 const option = document.createElement('option');
-                option.value = venue;
-                option.textContent = venue;
+                option.value = venue.address;
+                option.textContent = venue.name;
                 venueSelect.appendChild(option);
             });
 
@@ -108,6 +114,7 @@
 
         function showHotelMarker() {
             const selectedHotel = document.getElementById('hotel-select').value;
+            const hotelName = document.getElementById('hotel-select').options[document.getElementById('hotel-select').selectedIndex].text;
             if (selectedHotel) {
                 const geocoder = new google.maps.Geocoder();
                 geocoder.geocode({ address: selectedHotel }, function(results, status) {
@@ -119,7 +126,7 @@
                         hotelMarker = new google.maps.Marker({
                             map: map,
                             position: location,
-                            title: selectedHotel,
+                            title: hotelName || 'Start',
                             icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
                         });
                         map.setCenter(location);
@@ -133,6 +140,7 @@
 
         function showVenueMarker() {
             const selectedVenue = document.getElementById('venue-select').value;
+            const venueName = document.getElementById('venue-select').options[document.getElementById('venue-select').selectedIndex].text;
             if (selectedVenue) {
                 const geocoder = new google.maps.Geocoder();
                 geocoder.geocode({ address: selectedVenue }, function(results, status) {
@@ -144,7 +152,7 @@
                         venueMarker = new google.maps.Marker({
                             map: map,
                             position: location,
-                            title: selectedVenue,
+                            title: venueName || 'Viewing Location',
                             icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
                         });
                         map.setCenter(location);
@@ -197,7 +205,7 @@
                                     psaMarker = new google.maps.Marker({
                                         map: map,
                                         position: psa.location,
-                                        title: psa.name,
+                                        title: 'PSA',
                                         icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                                     });
 
@@ -246,4 +254,3 @@
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
 </body>
 </html>
-    

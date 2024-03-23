@@ -108,41 +108,41 @@
             document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
         }
 
-        function showHotelMarker() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            if (selectedHotel) {
-                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-                if (hotelMarker) {
-                    hotelMarker.setMap(null);
-                }
-                hotelMarker = new google.maps.Marker({
-                    position: hotel.location,
-                    map: map,
-                    title: hotel.name,
-                    icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-                });
-                map.setCenter(hotel.location);
-                map.setZoom(14);
-            }
+function showHotelMarker() {
+    const selectedHotel = document.getElementById('hotel-select').value;
+    if (selectedHotel) {
+        const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+        if (hotelMarker) {
+            hotelMarker.setMap(null);
         }
+        hotelMarker = new google.maps.Marker({
+            position: new google.maps.LatLng(hotel.location.lat, hotel.location.lng),
+            map: map,
+            title: hotel.name,
+            icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+        });
+        map.setCenter(new google.maps.LatLng(hotel.location.lat, hotel.location.lng));
+        map.setZoom(14);
+    }
+}
 
-        function showVenueMarker() {
-            const selectedVenue = document.getElementById('venue-select').value;
-            if (selectedVenue) {
-                const venue = venues.find(venue => venue.name === selectedVenue);
-                if (venueMarker) {
-                    venueMarker.setMap(null);
-                }
-                venueMarker = new google.maps.Marker({
-                    position: venue.location,
-                    map: map,
-                    title: venue.name,
-                    icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
-                });
-                map.setCenter(venue.location);
-                map.setZoom(14);
-            }
+function showVenueMarker() {
+    const selectedVenue = document.getElementById('venue-select').value;
+    if (selectedVenue) {
+        const venue = venues.find(venue => venue.name === selectedVenue);
+        if (venueMarker) {
+            venueMarker.setMap(null);
         }
+        venueMarker = new google.maps.Marker({
+            position: new google.maps.LatLng(venue.location.lat, venue.location.lng),
+            map: map,
+            title: venue.name,
+            icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
+        });
+        map.setCenter(new google.maps.LatLng(venue.location.lat, venue.location.lng));
+        map.setZoom(14);
+    }
+}
 
         function findNearestPSA(location) {
             let nearestPSA = null;

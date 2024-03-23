@@ -25,6 +25,7 @@
         </div>
         <button class="btn btn-primary" id="calculate-route-btn">Calculate Best Route</button>
         <div id="map"></div>
+        <div id="directions-panel"></div>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -39,12 +40,15 @@
         let venueMarker;
         let psaMarker;
         let directionsRenderer;
+        let directionsService;
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 center: { lat: 48.8566, lng: 2.3522 },
                 zoom: 12
             });
+
+            directionsService = new google.maps.DirectionsService();
 
             Promise.all([
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels!B2:C51?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
@@ -209,12 +213,13 @@
                                         icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                                     });
 
-                                    const directionsService = new google.maps.DirectionsService();
                                     if (directionsRenderer) {
                                         directionsRenderer.setMap(null);
+                                        directionsRenderer.setPanel(null);
                                     }
                                     directionsRenderer = new google.maps.DirectionsRenderer();
                                     directionsRenderer.setMap(map);
+                                    directionsRenderer.setPanel(document.getElementById('directions-panel'));
 
                                     const waypoints = [{ location: psa.location, stopover: true }];
 
@@ -233,6 +238,11 @@
                                             bounds.extend(hotelLocation);
                                             bounds.extend(venueLocation);
                                             map.fitBounds(bounds);
+
+                                            // Display total trip time
+                                            const totalDuration = result.routes[0].legs.reduce((total, leg) => total + leg.duration.value, 0);
+                                            const totalDurationText = formatDuration(totalDuration);
+                                            document.getElementById('directions-panel').insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
                                         } else {
                                             console.error('Error calculating route:', status);
                                         }
@@ -249,6 +259,25 @@
                     }
                 });
             }
+        }
+
+        function formatDuration(durationInSeconds) {
+            const hours = Math.floor(durationInSeconds / 3600);
+            const minutes = Math.floor((durationInSeconds % 3600) / 60);
+            const seconds = durationInSeconds % 60;
+
+            let durationText = '';
+            if (hours > 0) {
+                durationText += `${hours} hour${hours > 1 ? 's' : ''} `;
+            }
+            if (minutes > 0) {
+                durationText += `${minutes} minute${minutes > 1 ? 's' : ''} `;
+            }
+            if (seconds > 0) {
+                durationText += `${seconds} second${seconds > 1 ? 's' : ''}`;
+            }
+
+            return durationText.trim();
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>

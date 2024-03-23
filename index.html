@@ -67,6 +67,8 @@
                 })).filter(psa => !isNaN(psa.location.lat) && !isNaN(psa.location.lng));
 
                 populateDropdowns();
+                console.log('Hotels:', hotels);
+console.log('Venues:', venues);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
@@ -108,25 +110,27 @@
             document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
         }
 
-        function showHotelMarker() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            if (selectedHotel) {
-                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-                if (hotel && hotel.location) {
-                    if (hotelMarker) {
-                        hotelMarker.setMap(null);
-                    }
-                    hotelMarker = new google.maps.Marker({
-                        position: hotel.location,
-                        map: map,
-                        title: hotel.name,
-                        icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-                    });
-                    map.setCenter(hotel.location);
-                    map.setZoom(14);
-                }
+function showHotelMarker() {
+    const selectedHotel = document.getElementById('hotel-select').value;
+    if (selectedHotel) {
+        const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+        if (hotel && hotel.location && !isNaN(hotel.location.lat) && !isNaN(hotel.location.lng)) {
+            if (hotelMarker) {
+                hotelMarker.setMap(null);
             }
+            hotelMarker = new google.maps.Marker({
+                position: hotel.location,
+                map: map,
+                title: hotel.name,
+                icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+            });
+            map.setCenter(hotel.location);
+            map.setZoom(14);
+        } else {
+            console.error('Invalid hotel location data:', hotel);
         }
+    }
+}
 
         function showVenueMarker() {
             const selectedVenue = document.getElementById('venue-select').value;

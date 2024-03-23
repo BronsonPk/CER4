@@ -1,231 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Paris Olympic Opening Ceremony Transportation Planner</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        #map {
-            height: 400px;
-            width: 100%;
-        }
-    </style>
+  <title>Paris Olympic Opening Ceremony Transportation Planner</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Paris Olympic Opening Ceremony Transportation Planner</h1>
-        <div class="form-group">
-            <label for="hotel-select">Select Hotel:</label>
-            <select class="form-control" id="hotel-select"></select>
-        </div>
-        <div class="form-group">
-            <label for="venue-select">Select Venue:</label>
-            <select class="form-control" id="venue-select"></select>
-        </div>
-        <button class="btn btn-primary" id="calculate-route-btn">Calculate Best Route</button>
-        <div id="map"></div>
+  <div class="container">
+    <h1>Paris Olympic Opening Ceremony Transportation Planner</h1>
+    <div class="form-group">
+      <label for="hotel-select">Select Hotel:</label>
+      <select class="form-control" id="hotel-select"></select>
     </div>
+    <div class="form-group">
+      <label for="venue-select">Select Venue:</label>
+      <select class="form-control" id="venue-select"></select>
+    </div>
+    <button class="btn btn-primary" id="calculate-route-btn">Calculate Best Route</button>
+    <div id="map"></div>
+  </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        let map;
-        let hotels = [];
-        let venues = [];
-        let psas = [];
-        let hotelMarker;
-        let venueMarker;
-        let psaMarker;
-        let directionsRenderer;
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    // Let map, hotels, venues, psas be globally accessible variables
+    let map;
+    let hotels = [];
+    let venues = [];
+    let psas = [];
 
-        function initMap() {
-            map = new google.maps.Map(document.getElementById('map'), {
-                center: { lat: 48.8566, lng: 2.3522 },
-                zoom: 12
-            });
+    // Function to initialize the map
+    function initMap() {
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 48.8566, lng: 2.3522 },
+        zoom: 12
+      });
 
-            Promise.all([
-                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
-                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
-                fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/PSAs?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM')
-            ])
-            .then(([hotelsResponse, venuesResponse, psasResponse]) => Promise.all([hotelsResponse.json(), venuesResponse.json(), psasResponse.json()]))
-            .then(([hotelsData, venuesData, psasData]) => {
-                hotels = hotelsData.values.slice(1).map(row => ({
-                    name: row[1],
-                    location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
-                }));
-                venues = venuesData.values.slice(1).map(row => ({
-                    name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
-                })).filter(venue => !isNaN(venue.location.lat) && !isNaN(venue.location.lng));
-                psas = psasData.values.slice(1).map(row => ({
-                    name: row[1],
-                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
-                })).filter(psa => !isNaN(psa.location.lat) && !isNaN(psa.location.lng));
-
-                populateDropdowns();
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
-        }
-
-        function populateDropdowns() {
-            const hotelSelect = document.getElementById('hotel-select');
-            const venueSelect = document.getElementById('venue-select');
-
-            // Add a blank option for hotels
-            const hotelBlankOption = document.createElement('option');
-            hotelBlankOption.value = '';
-            hotelBlankOption.textContent = 'Select a hotel';
-            hotelSelect.appendChild(hotelBlankOption);
-
-            // Add a blank option for venues
-            const venueBlankOption = document.createElement('option');
-            venueBlankOption.value = '';
-            venueBlankOption.textContent = 'Select a venue';
-            venueSelect.appendChild(venueBlankOption);
-
-            hotels.forEach(hotel => {
-                const option = document.createElement('option');
-                option.value = hotel.name;
-                option.textContent = hotel.name;
-                hotelSelect.appendChild(option);
-            });
-
-            venues.forEach(venue => {
-                const option = document.createElement('option');
-                option.value = venue.name;
-                option.textContent = venue.name;
-                venueSelect.appendChild(option);
-            });
-
-            hotelSelect.addEventListener('change', showHotelMarker);
-            venueSelect.addEventListener('change', showVenueMarker);
-            document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
-        }
-
-        function showHotelMarker() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            if (selectedHotel) {
-                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-                if (hotel && hotel.location) {
-                    if (hotelMarker) {
-                        hotelMarker.setMap(null);
-                    }
-                    hotelMarker = new google.maps.Marker({
-                        position: hotel.location,
-                        map: map,
-                        title: hotel.name,
-                        icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-                    });
-                    map.setCenter(hotel.location);
-                    map.setZoom(14);
-                }
+      // Fetch data from Google Sheets for hotels, venues, and PSAs (replace with your actual sheet IDs and API key)
+      Promise.all([
+        fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels?key=YOUR_API_KEY'),
+        fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues?key=YOUR_API_KEY'),
+        fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/PSAs?key=YOUR_API_KEY')
+      ])
+        .then(([hotelsResponse, venuesResponse, psasResponse]) => Promise.all([hotelsResponse.json(), venuesResponse.json(), psasResponse.json()]))
+        .then(([hotelsData, venuesData, psasData]) => {
+          hotels = hotelsData.values.slice(1).map(row => ({
+            name: row[1],
+            location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
+          }));
+          venues = venuesData.values.slice(1).map(row => {
+            const lat = parseFloat(row[3]);
+            const lng = parseFloat(row[2]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              return {
+                name: row[1],
+                location: { lat, lng }
+              };
+            } else {
+              console.warn(`Invalid location data for venue: ${row[1]}`);
+              return null;
             }
-        }
-
-        function showVenueMarker() {
-            const selectedVenue = document.getElementById('venue-select').value;
-            if (selectedVenue) {
-                const venue = venues.find(venue => venue.name === selectedVenue);
-                if (venue && venue.location) {
-                    if (venueMarker) {
-                        venueMarker.setMap(null);
-                    }
-                    venueMarker = new google.maps.Marker({
-                        position: venue.location,
-                        map: map,
-                        title: venue.name,
-                        icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
-                    });
-                    map.setCenter(venue.location);
-                    map.setZoom(14);
-                }
-            }
-        }
-
-        function findNearestPSA(location) {
-            let nearestPSA = null;
-            let minDistance = Infinity;
-
-            psas.forEach(psa => {
-                if (psa && psa.location) {
-                    const distance = google.maps.geometry.spherical.computeDistanceBetween(
-                        new google.maps.LatLng(location),
-                        new google.maps.LatLng(psa.location)
-                    );
-
-                    if (distance < minDistance) {
-                        minDistance = distance;
-                        nearestPSA = psa;
-                    }
-                }
-            });
-
-            return nearestPSA;
-        }
-
-        function calculateRoute() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            const selectedVenue = document.getElementById('venue-select').value;
-
-            if (selectedHotel && selectedVenue) {
-                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-                const venue = venues.find(venue => venue.name === selectedVenue);
-                if (hotel && hotel.location && venue && venue.location) {
-                    const psa = findNearestPSA(hotel.location);
-                    if (psa && psa.location) {
-                        if (psaMarker) {
-                            psaMarker.setMap(null);
-                        }
-                        psaMarker = new google.maps.Marker({
-                            position: psa.location,
-                            map: map,
-                            title: psa.name,
-                            icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                        });
-
-                        const directionsService = new google.maps.DirectionsService();
-                        if (directionsRenderer) {
-                            directionsRenderer.setMap(null);
-                        }
-                        directionsRenderer = new google.maps.DirectionsRenderer();
-                        directionsRenderer.setMap(map);
-
-                        const waypoints = [{ location: psa.location, stopover: true }];
-
-                        const request = {
-                            origin: hotel.location,
-                            destination: venue.location,
-                            waypoints: waypoints,
-                            optimizeWaypoints: true,
-                            travelMode: 'DRIVING'
-                        };
-
-                        directionsService.route(request, function(result, status) {
-                            if (status === 'OK') {
-                                directionsRenderer.setDirections(result);
-                                const bounds = new google.maps.LatLngBounds();
-                                bounds.extend(hotel.location);
-                                bounds.extend(venue.location);
-                                map.fitBounds(bounds);
-                            } else {
-                                console.error('Error calculating route:', status);
-                            }
-                        });
-                    } else {
-                        console.error('Nearest PSA not found or missing location data');
-                    }
-                } else {
-                    console.error('Hotel or venue data missing or invalid');
-                }
-            }
-        }
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
-</body>
-</html>
+          }).filter(venue => venue !== null);
+          psas = psasData.values.slice(1).map(row => {
+            const lat = parseFloat(row[3]);

@@ -206,6 +206,58 @@
                                     if (psaMarker) {
                                         psaMarker.setMap(null);
                                     }
+                                            const hotelToPSARenderer = new google.maps.DirectionsRenderer({
+            polylineOptions: {
+                strokeColor: 'blue'
+            },
+            suppressMarkers: true
+        });
+        const psaToVenueRenderer = new google.maps.DirectionsRenderer({
+            polylineOptions: {
+                strokeColor: 'green'
+            },
+            suppressMarkers: true
+        });
+
+        const hotelToPSARequest = {
+            origin: hotelLocation,
+            destination: psa.location,
+            travelMode: 'DRIVING'
+        };
+
+        const psaToVenueRequest = {
+            origin: psa.location,
+            destination: venueLocation,
+            travelMode: 'DRIVING'
+        };
+
+        directionsService.route(hotelToPSARequest, function(hotelToPSAResult, hotelToPSAStatus) {
+            if (hotelToPSAStatus === 'OK') {
+                hotelToPSARenderer.setDirections(hotelToPSAResult);
+                hotelToPSARenderer.setMap(map);
+
+                directionsService.route(psaToVenueRequest, function(psaToVenueResult, psaToVenueStatus) {
+                    if (psaToVenueStatus === 'OK') {
+                        psaToVenueRenderer.setDirections(psaToVenueResult);
+                        psaToVenueRenderer.setMap(map);
+
+                        const bounds = new google.maps.LatLngBounds();
+                        bounds.extend(hotelLocation);
+                        bounds.extend(venueLocation);
+                        map.fitBounds(bounds);
+
+                        // Display total trip time
+                        const totalDuration = hotelToPSAResult.routes[0].legs[0].duration.value + psaToVenueResult.routes[0].legs[0].duration.value;
+                        const totalDurationText = formatDuration(totalDuration);
+                        document.getElementById('directions-panel').insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
+                    } else {
+                        console.error('Error calculating PSA to Venue route:', psaToVenueStatus);
+                    }
+                });
+            } else {
+                console.error('Error calculating Hotel to PSA route:', hotelToPSAStatus);
+            }
+        });
                                     psaMarker = new google.maps.Marker({
                                         map: map,
                                         position: psa.location,

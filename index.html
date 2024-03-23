@@ -59,7 +59,7 @@
                 }));
                 venues = venuesData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) } // Change column index for latitude
                 }));
                 psas = psasData.values.slice(1).map(row => ({
                     name: row[1],
@@ -209,18 +209,23 @@
                         directionsService.route(request, function(result, status) {
                             if (status === 'OK') {
                                 directionsRenderer.setDirections(result);
+                                const bounds = new google.maps.LatLngBounds();
+                                bounds.extend(hotel.location);
+                                bounds.extend(venue.location);
+                                map.fitBounds(bounds);
+                            } else {
+                                console.error('Error calculating route:', status);
                             }
                         });
-
-                        const bounds = new google.maps.LatLngBounds();
-                        bounds.extend(hotel.location);
-                        bounds.extend(venue.location);
-                        map.fitBounds(bounds);
+                    } else {
+                        console.error('Nearest PSA not found or missing location data');
                     }
+                } else {
+                    console.error('Hotel or venue data missing or invalid');
                 }
             }
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap&libraries=geometry" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
 </body>
 </html>

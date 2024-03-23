@@ -55,20 +55,22 @@
             .then(([hotelsData, venuesData, psasData]) => {
                 hotels = hotelsData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
+                    location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
                 }));
                 venues = venuesData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[4]), lng: parseFloat(row[3]) }
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
                 })).filter(venue => !isNaN(venue.location.lat) && !isNaN(venue.location.lng));
                 psas = psasData.values.slice(1).map(row => ({
-                    name: row[0],
-                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                    name: row[1],
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
                 })).filter(psa => !isNaN(psa.location.lat) && !isNaN(psa.location.lng));
 
-                populateDropdowns();
                 console.log('Hotels:', hotels);
-console.log('Venues:', venues);
+                console.log('Venues:', venues);
+                console.log('PSAs:', psas);
+
+                populateDropdowns();
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
@@ -110,33 +112,33 @@ console.log('Venues:', venues);
             document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
         }
 
-function showHotelMarker() {
-    const selectedHotel = document.getElementById('hotel-select').value;
-    if (selectedHotel) {
-        const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-        if (hotel && hotel.location && !isNaN(hotel.location.lat) && !isNaN(hotel.location.lng)) {
-            if (hotelMarker) {
-                hotelMarker.setMap(null);
+        function showHotelMarker() {
+            const selectedHotel = document.getElementById('hotel-select').value;
+            if (selectedHotel) {
+                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+                if (hotel && hotel.location && !isNaN(hotel.location.lat) && !isNaN(hotel.location.lng)) {
+                    if (hotelMarker) {
+                        hotelMarker.setMap(null);
+                    }
+                    hotelMarker = new google.maps.Marker({
+                        position: hotel.location,
+                        map: map,
+                        title: hotel.name,
+                        icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                    });
+                    map.setCenter(hotel.location);
+                    map.setZoom(14);
+                } else {
+                    console.error('Invalid hotel location data:', hotel);
+                }
             }
-            hotelMarker = new google.maps.Marker({
-                position: hotel.location,
-                map: map,
-                title: hotel.name,
-                icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-            });
-            map.setCenter(hotel.location);
-            map.setZoom(14);
-        } else {
-            console.error('Invalid hotel location data:', hotel);
         }
-    }
-}
 
         function showVenueMarker() {
             const selectedVenue = document.getElementById('venue-select').value;
             if (selectedVenue) {
                 const venue = venues.find(venue => venue.name === selectedVenue);
-                if (venue && venue.location) {
+                if (venue && venue.location && !isNaN(venue.location.lat) && !isNaN(venue.location.lng)) {
                     if (venueMarker) {
                         venueMarker.setMap(null);
                     }
@@ -148,6 +150,8 @@ function showHotelMarker() {
                     });
                     map.setCenter(venue.location);
                     map.setZoom(14);
+                } else {
+                    console.error('Invalid venue location data:', venue);
                 }
             }
         }

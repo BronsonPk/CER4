@@ -43,8 +43,6 @@
                 zoom: 12
             });
 
-            const infoWindow = new google.maps.InfoWindow();
-
             Promise.all([
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
@@ -53,16 +51,16 @@
             .then(([hotelsResponse, venuesResponse, psasResponse]) => Promise.all([hotelsResponse.json(), venuesResponse.json(), psasResponse.json()]))
             .then(([hotelsData, venuesData, psasData]) => {
                 hotels = hotelsData.values.slice(1).map(row => ({
-                    name: row[0],
-                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                    name: row[1],
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
                 }));
                 venues = venuesData.values.slice(1).map(row => ({
-                    name: row[0],
-                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                    name: row[1],
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
                 }));
                 psas = psasData.values.slice(1).map(row => ({
-                    name: row[0],
-                    location: { lat: parseFloat(row[1]), lng: parseFloat(row[2]) }
+                    name: row[1],
+                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
                 }));
 
                 populateDropdowns();
@@ -75,6 +73,18 @@
         function populateDropdowns() {
             const hotelSelect = document.getElementById('hotel-select');
             const venueSelect = document.getElementById('venue-select');
+
+            // Add a blank option for hotels
+            const hotelBlankOption = document.createElement('option');
+            hotelBlankOption.value = '';
+            hotelBlankOption.textContent = 'Select a hotel';
+            hotelSelect.appendChild(hotelBlankOption);
+
+            // Add a blank option for venues
+            const venueBlankOption = document.createElement('option');
+            venueBlankOption.value = '';
+            venueBlankOption.textContent = 'Select a venue';
+            venueSelect.appendChild(venueBlankOption);
 
             hotels.forEach(hotel => {
                 const option = document.createElement('option');
@@ -139,6 +149,14 @@
                     position: venue.location,
                     map: map,
                     title: venue.name
+                });
+
+                // Add PSA marker
+                const psaMarker = new google.maps.Marker({
+                    position: psa.location,
+                    map: map,
+                    title: psa.name,
+                    icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
                 });
 
                 const directionsService = new google.maps.DirectionsService();

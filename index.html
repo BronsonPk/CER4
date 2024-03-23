@@ -14,11 +14,15 @@
   <h1>CER1 Hotel to PSA Transportation Plan</h1>
   <div>
     <label for="hotel-select">Select Hotel:</label>
-    <select id="hotel-select"></select>
+    <select id="hotel-select">
+      <option value="">Choose a hotel</option>
+    </select>
   </div>
   <div>
     <label for="venue-select">Select Venue:</label>
-    <select id="venue-select"></select>
+    <select id="venue-select">
+      <option value="">Choose a venue</option>
+    </select>
   </div>
   <div id="map"></div>
   <div id="directions-panel"></div>
@@ -32,9 +36,7 @@
         zoom: 13
       });
     }
-  </script>
 
-  <script>
     function populateDropdowns(hotels, venues) {
       const hotelSelect = document.getElementById('hotel-select');
       const venueSelect = document.getElementById('venue-select');
@@ -53,67 +55,64 @@
         venueSelect.appendChild(option);
       });
     }
-  </script>
 
-  <script>
     const sheetId = '1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ';
     const apiKey = 'AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM';
-    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?ranges=Hotels!A2:F&ranges=Venues!A2:F&key=${apiKey}`;
+    const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values:batchGet?ranges=Hotels!A2:F&ranges=Venues!A2:F&ranges=PSAs!A2:D&key=${apiKey}`;
 
     fetch(sheetUrl)
       .then(response => response.json())
       .then(data => {
         const hotels = data.valueRanges[0].values;
         const venues = data.valueRanges[1].values;
+        const psas = data.valueRanges[2].values;
         populateDropdowns(hotels, venues);
       });
+
+    function generateRoute() {
+      const selectedHotel = document.getElementById('hotel-select').value;
+      const selectedVenue = document.getElementById('venue-select').value;
+
+      if (selectedHotel && selectedVenue) {
+        const nearestPSA = findNearestPSA(selectedHotel);
+        const hotelToPSARoute = getDirections(selectedHotel, nearestPSA);
+        const psaToVenueRoute = getDirections(nearestPSA, selectedVenue);
+        displayRoute(hotelToPSARoute, psaToVenueRoute);
+      }
+    }
+
+    function findNearestPSA(hotelId) {
+      // Replace this with your logic to find the nearest PSA based on the selected hotel
+      // You can use the latitude and longitude data from your Google Sheet
+      // For now, let's assume the nearest PSA is "PSA1"
+      return "PSA1";
+    }
+
+    function getDirections(origin, destination) {
+      // Replace this with your logic to fetch directions using the Google Maps Directions API
+      // You'll need to use the latitude and longitude data from your Google Sheet
+      // For now, let's return a placeholder route
+      return {
+        origin: origin,
+        destination: destination,
+        path: [/* Array of coordinates representing the route */]
+      };
+    }
+
+    function displayRoute(hotelToPSARoute, psaToVenueRoute) {
+      // Replace this with your logic to display the routes on the map
+      // You can use the Google Maps JavaScript API to draw the routes
+      console.log("Hotel to PSA Route:", hotelToPSARoute);
+      console.log("PSA to Venue Route:", psaToVenueRoute);
+    }
+
+    document.getElementById('hotel-select').addEventListener('change', generateRoute);
+    document.getElementById('venue-select').addEventListener('change', generateRoute);
   </script>
 
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&callback=initMap" async defer></script>
-  <script>
-  function generateRoute() {
-    const selectedHotel = document.getElementById('hotel-select').value;
-    const selectedVenue = document.getElementById('venue-select').value;
-
-    // Find the nearest PSA to the selected hotel
-    const nearestPSA = findNearestPSA(selectedHotel);
-
-    // Generate the route from the hotel to the nearest PSA
-    const hotelToPSARoute = getDirections(selectedHotel, nearestPSA);
-
-    // Generate the route from the PSA to the selected venue
-    const psaToVenueRoute = getDirections(nearestPSA, selectedVenue);
-
-    // Combine the two routes and display them on the map
-    displayRoute(hotelToPSARoute, psaToVenueRoute);
-  }
-
-  function findNearestPSA(hotelId) {
-    // Replace this with your logic to find the nearest PSA based on the selected hotel
-    // You can use the latitude and longitude data from your Google Sheet
-    // For now, let's assume the nearest PSA is "PSA1"
-    return "PSA1";
-  }
-
-  function getDirections(origin, destination) {
-    // Replace this with your logic to fetch directions using the Google Maps Directions API
-    // You'll need to use the latitude and longitude data from your Google Sheet
-    // For now, let's return a placeholder route
-    return {
-      origin: origin,
-      destination: destination,
-      path: [/* Array of coordinates representing the route */]
-    };
-  }
-
-  function displayRoute(hotelToPSARoute, psaToVenueRoute) {
-    // Replace this with your logic to display the routes on the map
-    // You can use the Google Maps JavaScript API to draw the routes
-    console.log("Hotel to PSA Route:", hotelToPSARoute);
-    console.log("PSA to Venue Route:", psaToVenueRoute);
-  }
-
-  document.getElementById('hotel-select').addEventListener('change', generateRoute);
+</body>
+</html>
   document.getElementById('venue-select').addEventListener('change', generateRoute);
 </script>
 </body>

@@ -57,14 +57,32 @@
                     name: row[1],
                     location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
                 }));
-                venues = venuesData.values.slice(1).map(row => ({
-                    name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) } // Change column index for latitude
-                }));
-                psas = psasData.values.slice(1).map(row => ({
-                    name: row[1],
-                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
-                }));
+                venues = venuesData.values.slice(1).map(row => {
+                    const lat = parseFloat(row[3]);
+                    const lng = parseFloat(row[2]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        return {
+                            name: row[1],
+                            location: { lat, lng }
+                        };
+                    } else {
+                        console.warn(`Invalid location data for venue: ${row[1]}`);
+                        return null;
+                    }
+                }).filter(venue => venue !== null);
+                psas = psasData.values.slice(1).map(row => {
+                    const lat = parseFloat(row[3]);
+                    const lng = parseFloat(row[4]);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        return {
+                            name: row[1],
+                            location: { lat, lng }
+                        };
+                    } else {
+                        console.warn(`Invalid location data for PSA: ${row[1]}`);
+                        return null;
+                    }
+                }).filter(psa => psa !== null);
 
                 populateDropdowns();
             })
@@ -153,7 +171,7 @@
             let minDistance = Infinity;
 
             psas.forEach(psa => {
-                if (psa.location) {
+                if (psa && psa.location) {
                     const distance = google.maps.geometry.spherical.computeDistanceBetween(
                         new google.maps.LatLng(location.location),
                         new google.maps.LatLng(psa.location)

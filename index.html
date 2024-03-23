@@ -55,15 +55,15 @@
             .then(([hotelsData, venuesData, psasData]) => {
                 hotels = hotelsData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
+                    location: { lat: parseFloat(row[4]), lng: parseFloat(row[5]) }
                 }));
                 venues = venuesData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
+                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
                 }));
                 psas = psasData.values.slice(1).map(row => ({
                     name: row[1],
-                    location: { lat: parseFloat(row[2]), lng: parseFloat(row[3]) }
+                    location: { lat: parseFloat(row[3]), lng: parseFloat(row[4]) }
                 }));
 
                 populateDropdowns();
@@ -108,41 +108,51 @@
             document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
         }
 
-function showHotelMarker() {
-    const selectedHotel = document.getElementById('hotel-select').value;
-    if (selectedHotel) {
-        const hotel = hotels.find(hotel => hotel.name === selectedHotel);
-        if (hotelMarker) {
-            hotelMarker.setMap(null);
+        function showHotelMarker() {
+            const selectedHotel = document.getElementById('hotel-select').value;
+            if (selectedHotel) {
+                const hotel = hotels.find(hotel => hotel.name === selectedHotel);
+                console.log('Hotel:', hotel);
+                if (hotelMarker) {
+                    hotelMarker.setMap(null);
+                }
+                try {
+                    hotelMarker = new google.maps.Marker({
+                        position: new google.maps.LatLng(hotel.location.lat, hotel.location.lng),
+                        map: map,
+                        title: hotel.name,
+                        icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                    });
+                    map.setCenter(new google.maps.LatLng(hotel.location.lat, hotel.location.lng));
+                    map.setZoom(14);
+                } catch (error) {
+                    console.error('Error setting hotel marker:', error);
+                }
+            }
         }
-        hotelMarker = new google.maps.Marker({
-            position: new google.maps.LatLng(hotel.location.lat, hotel.location.lng),
-            map: map,
-            title: hotel.name,
-            icon: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-        });
-        map.setCenter(new google.maps.LatLng(hotel.location.lat, hotel.location.lng));
-        map.setZoom(14);
-    }
-}
 
-function showVenueMarker() {
-    const selectedVenue = document.getElementById('venue-select').value;
-    if (selectedVenue) {
-        const venue = venues.find(venue => venue.name === selectedVenue);
-        if (venueMarker) {
-            venueMarker.setMap(null);
+        function showVenueMarker() {
+            const selectedVenue = document.getElementById('venue-select').value;
+            if (selectedVenue) {
+                const venue = venues.find(venue => venue.name === selectedVenue);
+                console.log('Venue:', venue);
+                if (venueMarker) {
+                    venueMarker.setMap(null);
+                }
+                try {
+                    venueMarker = new google.maps.Marker({
+                        position: new google.maps.LatLng(venue.location.lat, venue.location.lng),
+                        map: map,
+                        title: venue.name,
+                        icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
+                    });
+                    map.setCenter(new google.maps.LatLng(venue.location.lat, venue.location.lng));
+                    map.setZoom(14);
+                } catch (error) {
+                    console.error('Error setting venue marker:', error);
+                }
+            }
         }
-        venueMarker = new google.maps.Marker({
-            position: new google.maps.LatLng(venue.location.lat, venue.location.lng),
-            map: map,
-            title: venue.name,
-            icon: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png'
-        });
-        map.setCenter(new google.maps.LatLng(venue.location.lat, venue.location.lng));
-        map.setZoom(14);
-    }
-}
 
         function findNearestPSA(location) {
             let nearestPSA = null;
@@ -164,6 +174,7 @@ function showVenueMarker() {
         }
 
         function calculateRoute() {
+            console.log('Calculate Route clicked');
             const selectedHotel = document.getElementById('hotel-select').value;
             const selectedVenue = document.getElementById('venue-select').value;
 
@@ -175,12 +186,16 @@ function showVenueMarker() {
                 if (psaMarker) {
                     psaMarker.setMap(null);
                 }
-                psaMarker = new google.maps.Marker({
-                    position: psa.location,
-                    map: map,
-                    title: psa.name,
-                    icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                });
+                try {
+                    psaMarker = new google.maps.Marker({
+                        position: new google.maps.LatLng(psa.location.lat, psa.location.lng),
+                        map: map,
+                        title: psa.name,
+                        icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    });
+                } catch (error) {
+                    console.error('Error setting PSA marker:', error);
+                }
 
                 const directionsService = new google.maps.DirectionsService();
                 if (directionsRenderer) {
@@ -189,11 +204,11 @@ function showVenueMarker() {
                 directionsRenderer = new google.maps.DirectionsRenderer();
                 directionsRenderer.setMap(map);
 
-                const waypoints = [{ location: psa.location, stopover: true }];
+                const waypoints = [{ location: new google.maps.LatLng(psa.location.lat, psa.location.lng), stopover: true }];
 
                 const request = {
-                    origin: hotel.location,
-                    destination: venue.location,
+                    origin: new google.maps.LatLng(hotel.location.lat, hotel.location.lng),
+                    destination: new google.maps.LatLng(venue.location.lat, venue.location.lng),
                     waypoints: waypoints,
                     optimizeWaypoints: true,
                     travelMode: 'DRIVING'
@@ -202,12 +217,14 @@ function showVenueMarker() {
                 directionsService.route(request, function(result, status) {
                     if (status === 'OK') {
                         directionsRenderer.setDirections(result);
+                    } else {
+                        console.error('Error calculating route:', status);
                     }
                 });
 
                 const bounds = new google.maps.LatLngBounds();
-                bounds.extend(hotel.location);
-                bounds.extend(venue.location);
+                bounds.extend(new google.maps.LatLng(hotel.location.lat, hotel.location.lng));
+                bounds.extend(new google.maps.LatLng(venue.location.lat, venue.location.lng));
                 map.fitBounds(bounds);
             }
         }

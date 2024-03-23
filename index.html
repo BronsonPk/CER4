@@ -50,6 +50,28 @@
 
             directionsService = new google.maps.DirectionsService();
 
+            // Define the coordinates for the security perimeter
+            const securityPerimeterCoords = [
+                { lat: 48.86109, lng: 2.29588 },
+                { lat: 48.86035, lng: 2.29643 },
+                { lat: 48.85971, lng: 2.29781 },
+                { lat: 48.85863, lng: 2.29976 }
+                // Add more coordinate pairs as needed
+            ];
+
+            // Create a new polygon for the security perimeter
+            const securityPerimeter = new google.maps.Polygon({
+                paths: securityPerimeterCoords,
+                strokeColor: '#FF0000', // Red color
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+
+            // Add the security perimeter to the map
+            securityPerimeter.setMap(map);
+
             Promise.all([
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Hotels!B2:C51?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
                 fetch('https://sheets.googleapis.com/v4/spreadsheets/1fktkp6Osgs08qbYgKorEaZZxdDLq-0LRN3BMw7j_4kQ/values/Venues!B2:C17?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM'),
@@ -206,58 +228,6 @@
                                     if (psaMarker) {
                                         psaMarker.setMap(null);
                                     }
-                                            const hotelToPSARenderer = new google.maps.DirectionsRenderer({
-            polylineOptions: {
-                strokeColor: 'blue'
-            },
-            suppressMarkers: true
-        });
-        const psaToVenueRenderer = new google.maps.DirectionsRenderer({
-            polylineOptions: {
-                strokeColor: 'green'
-            },
-            suppressMarkers: true
-        });
-
-        const hotelToPSARequest = {
-            origin: hotelLocation,
-            destination: psa.location,
-            travelMode: 'DRIVING'
-        };
-
-        const psaToVenueRequest = {
-            origin: psa.location,
-            destination: venueLocation,
-            travelMode: 'DRIVING'
-        };
-
-        directionsService.route(hotelToPSARequest, function(hotelToPSAResult, hotelToPSAStatus) {
-            if (hotelToPSAStatus === 'OK') {
-                hotelToPSARenderer.setDirections(hotelToPSAResult);
-                hotelToPSARenderer.setMap(map);
-
-                directionsService.route(psaToVenueRequest, function(psaToVenueResult, psaToVenueStatus) {
-                    if (psaToVenueStatus === 'OK') {
-                        psaToVenueRenderer.setDirections(psaToVenueResult);
-                        psaToVenueRenderer.setMap(map);
-
-                        const bounds = new google.maps.LatLngBounds();
-                        bounds.extend(hotelLocation);
-                        bounds.extend(venueLocation);
-                        map.fitBounds(bounds);
-
-                        // Display total trip time
-                        const totalDuration = hotelToPSAResult.routes[0].legs[0].duration.value + psaToVenueResult.routes[0].legs[0].duration.value;
-                        const totalDurationText = formatDuration(totalDuration);
-                        document.getElementById('directions-panel').insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
-                    } else {
-                        console.error('Error calculating PSA to Venue route:', psaToVenueStatus);
-                    }
-                });
-            } else {
-                console.error('Error calculating Hotel to PSA route:', hotelToPSAStatus);
-            }
-        });
                                     psaMarker = new google.maps.Marker({
                                         map: map,
                                         position: psa.location,

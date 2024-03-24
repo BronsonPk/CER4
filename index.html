@@ -126,8 +126,19 @@
         }
 
         function displaySecurityPerimeter() {
+    fetch('https://1drv.ms/u/s!AuUKPspvtszKisgBb1_CfMBMpGCIDg?e=Btgi3w')
+        .then(response => response.text())
+        .then(kmlData => {
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(kmlData, 'text/xml');
+            const coordinates = kml.getElementsByTagName('coordinates')[0].textContent;
+            const perimeter = coordinates.split(' ').map(coord => {
+                const [lng, lat] = coord.split(',');
+                return { lat: parseFloat(lat), lng: parseFloat(lng) };
+            });
+
             const securityPerimeterPath = new google.maps.Polygon({
-                paths: securityPerimeter,
+                paths: perimeter,
                 strokeColor: '#FF0000',
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
@@ -136,7 +147,11 @@
             });
 
             securityPerimeterPath.setMap(map);
-        }
+        })
+        .catch(error => {
+            console.error('Error fetching KML data:', error);
+        });
+}
 
         function showHotelMarker() {
             const selectedHotel = document.getElementById('hotel-select').value;

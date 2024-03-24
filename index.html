@@ -102,31 +102,43 @@
                 });
         }
 
-        function populateHotelDropdown() {
-            const hotelSelect = document.getElementById('hotel-select');
+function populateHotelDropdown() {
+    const hotelSelect = document.getElementById('hotel-select');
 
-            hotels.forEach(hotel => {
-                const option = document.createElement('option');
-                option.value = hotel.address;
-                option.textContent = hotel.name;
-                hotelSelect.appendChild(option);
-            });
+    // Add a default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select your hotel';
+    hotelSelect.appendChild(defaultOption);
 
-            hotelSelect.addEventListener('change', showHotelMarker);
-        }
+    hotels.forEach(hotel => {
+        const option = document.createElement('option');
+        option.value = hotel.address;
+        option.textContent = hotel.name;
+        hotelSelect.appendChild(option);
+    });
 
-        function populateVenueDropdown() {
-            const venueSelect = document.getElementById('venue-select');
+    hotelSelect.addEventListener('change', showHotelMarker);
+}
 
-            venues.forEach(venue => {
-                const option = document.createElement('option');
-                option.value = venue.coordinates.join(',');
-                option.textContent = venue.name;
-                venueSelect.appendChild(option);
-            });
+function populateVenueDropdown() {
+    const venueSelect = document.getElementById('venue-select');
 
-            venueSelect.addEventListener('change', showVenueMarker);
-        }
+    // Add a default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select your venue';
+    venueSelect.appendChild(defaultOption);
+
+    venues.forEach(venue => {
+        const option = document.createElement('option');
+        option.value = venue.coordinates.join(',');
+        option.textContent = venue.name;
+        venueSelect.appendChild(option);
+    });
+
+    venueSelect.addEventListener('change', showVenueMarker);
+}
 
         function showHotelMarker() {
             const selectedHotel = document.getElementById('hotel-select').value;
@@ -194,44 +206,72 @@
             return nearestPSA;
         }
 
-        function calculateRoute() {
-            const selectedHotel = document.getElementById('hotel-select').value;
-            const selectedVenueCoordinates = document.getElementById('venue-select').value.split(',');
+function calculateRoute() {
+    const selectedHotel = document.getElementById('hotel-select').value;
+    const selectedVenueCoordinates = document.getElementById('venue-select').value.split(',');
 
-            if (selectedHotel && selectedVenueCoordinates.length === 2) {
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ address: selectedHotel }, function(hotelResults, hotelStatus) {
-                    if (hotelStatus === 'OK') {
-                        const hotelLocation = hotelResults[0].geometry.location;
-                        const venueLocation = new google.maps.LatLng(parseFloat(selectedVenueCoordinates[1]), parseFloat(selectedVenueCoordinates[0]));
-                        const nearestPSA = findNearestPSA(venueLocation);
+    if (selectedHotel && selectedVenueCoordinates.length === 2) {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address: selectedHotel }, function(hotelResults, hotelStatus) {
+            if (hotelStatus === 'OK') {
+                const hotelLocation = hotelResults[0].geometry.location;
+                const venueLocation = new google.maps.LatLng(parseFloat(selectedVenueCoordinates[1]), parseFloat(selectedVenueCoordinates[0]));
+                const nearestPSA = findNearestPSA(venueLocation);
 
-                        if (nearestPSA) {
-                            const psaLocation = new google.maps.LatLng(nearestPSA.coordinates[1], nearestPSA.coordinates[0]);
+                if (nearestPSA) {
+                    const psaLocation = new google.maps.LatLng(nearestPSA.coordinates[1], nearestPSA.coordinates[0]);
 
-                            const request = {
-                                origin: hotelLocation,
-                                destination: venueLocation,
-                                waypoints: [{ location: psaLocation, stopover: true }],
-                                travelMode: 'DRIVING'
-                            };
+                    const request = {
+                        origin: hotelLocation,
+                        destination: venueLocation,
+                        waypoints: [{ location: psaLocation, stopover: true }],
+                        travelMode: 'DRIVING',
+                        provideRouteAlternatives: false,
+                        optimizeWaypoints: false
+                    };
 
-                            directionsService.route(request, function(result, status) {
-                                if (status === 'OK') {
-                                    directionsRenderer.setDirections(result);
-                                } else {
-                                    console.error('Directions request failed due to ' + status);
-                                }
+                    directionsService.route(request, function(result, status) {
+                        if (status === 'OK') {
+                            // Clear previous markers and directions
+                            directionsRenderer.setMap(null);
+                            directionsRenderer.setPanel(null);
+
+                            // Create custom markers for hotel, PSA, and venue
+                            const hotelMarker = new google.maps.Marker({
+                                position: hotelLocation,
+                                map: map,
+                                label: 'Hotel'
                             });
+
+                            const psaMarker = new google.maps.Marker({
+                                position: psaLocation,
+                                map: map,
+                                label: 'Closest PSA'
+                            });
+
+                            const venueMarker = new google.maps.Marker({
+                                position: venueLocation,
+                                map: map,
+                                label: 'CER Venue'
+                            });
+
+                            // Set the directions renderer with the new result
+                            directionsRenderer.setMap(map);
+                            directionsRenderer.setPanel(document.getElementById('directions-panel'));
+                            directionsRenderer.setDirections(result);
                         } else {
-                            console.error('Nearest PSA not found');
+                            console.error('Directions request failed due to ' + status);
                         }
-                    } else {
-                        console.error('Geocode was not successful for the following reason:', hotelStatus);
-                    }
-                });
+                    });
+                } else {
+                    console.error('Nearest PSA not found');
+                }
+            } else {
+                console.error('Geocode was not successful for the following reason:', hotelStatus);
             }
-        }
+        });
+    }
+}
 
         document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
     </script>

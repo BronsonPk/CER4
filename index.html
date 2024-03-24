@@ -212,6 +212,8 @@
         function calculateRoute() {
             const selectedHotel = document.getElementById('hotel-select').value;
             const selectedVenue = document.getElementById('venue-select').value;
+            const hotelName = document.getElementById('hotel-select').options[document.getElementById('hotel-select').selectedIndex].text;
+            const venueName = document.getElementById('venue-select').options[document.getElementById('venue-select').selectedIndex].text;
 
             if (selectedHotel && selectedVenue) {
                 const geocoder = new google.maps.Geocoder();
@@ -278,18 +280,32 @@
                                                     
                                                     const directionsPanel = document.getElementById('directions-panel');
                                                     directionsPanel.innerHTML = ''; // Clear previous directions
-                                                    
+
                                                     // Display hotel to PSA directions
                                                     const hotelToPSAHeading = document.createElement('h4');
                                                     hotelToPSAHeading.textContent = 'Hotel to PSA:';
                                                     directionsPanel.appendChild(hotelToPSAHeading);
-                                                    hotelToPSARenderer.setPanel(directionsPanel);
+
+                                                    const hotelToPSAList = document.createElement('ol');
+                                                    hotelToPSAResult.routes[0].legs[0].steps.forEach(step => {
+                                                        const instruction = document.createElement('li');
+                                                        instruction.innerHTML = step.instructions.replace(selectedHotel, hotelName).replace(psa.location.toString(), psa.name);
+                                                        hotelToPSAList.appendChild(instruction);
+                                                    });
+                                                    directionsPanel.appendChild(hotelToPSAList);
 
                                                     // Display PSA to venue directions
                                                     const psaToVenueHeading = document.createElement('h4');
                                                     psaToVenueHeading.textContent = 'PSA to Venue:';
                                                     directionsPanel.appendChild(psaToVenueHeading);
-                                                    psaToVenueRenderer.setPanel(directionsPanel);
+
+                                                    const psaToVenueList = document.createElement('ol');
+                                                    psaToVenueResult.routes[0].legs[0].steps.forEach(step => {
+                                                        const instruction = document.createElement('li');
+                                                        instruction.innerHTML = step.instructions.replace(psa.location.toString(), psa.name).replace(selectedVenue, venueName);
+                                                        psaToVenueList.appendChild(instruction);
+                                                    });
+                                                    directionsPanel.appendChild(psaToVenueList);
 
                                                     const bounds = new google.maps.LatLngBounds();
                                                     bounds.extend(hotelLocation);
@@ -299,7 +315,9 @@
                                                     // Display total trip time
                                                     const totalDuration = hotelToPSAResult.routes[0].legs[0].duration.value + psaToVenueResult.routes[0].legs[0].duration.value;
                                                     const totalDurationText = formatDuration(totalDuration);
-                                                    directionsPanel.insertAdjacentHTML('beforebegin', `<p>Total Trip Time: ${totalDurationText}</p>`);
+                                                    const tripTimeElement = document.createElement('p');
+                                                    tripTimeElement.textContent = `Total Trip Time: ${totalDurationText}`;
+                                                    directionsPanel.insertBefore(tripTimeElement, directionsPanel.firstChild);
                                                 } else {
                                                     console.error('Error calculating PSA to Venue route:', psaToVenueStatus);
                                                 }
@@ -316,7 +334,6 @@
                             }
                         });
                     } else {
-                        console.error
                         console.error('Geocode was not successful for the hotel for the following reason:', hotelStatus);
                     }
                 });
@@ -344,18 +361,13 @@
 
         function csvToArray(csvString) {
             const rows = csvString.split('\n');
-            const headers = rows[0].split(',');
             const data = [];
 
             for (let i = 1; i < rows.length; i++) {
-                const row = rows[i].split(',');
-                const rowData = {};
-
-                for (let j = 0; j < headers.length; j++) {
-                    rowData[headers[j]] = row[j];
+                const row = rows[i].trim().split(',');
+                if (row.length === 4) {
+                    data.push(row);
                 }
-
-                data.push(rowData);
             }
 
             return data;

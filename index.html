@@ -126,8 +126,8 @@
         }
 
         function displaySecurityPerimeter() {
-    fetch('https://drive.google.com/file/d/1BSJ_UBOXc3D5u7s2kwf4pqCZYC6Cdfbf/view?usp=sharing')
-        .then(response => response.text())
+fetch('https://drive.google.com/uc?export=download&id=https://drive.google.com/file/d/1BSJ_UBOXc3D5u7s2kwf4pqCZYC6Cdfbf/view?usp=sharing')        
+    .then(response => response.text())
         .then(kmlData => {
             const parser = new DOMParser();
             const kml = parser.parseFromString(kmlData, 'text/xml');

@@ -83,7 +83,7 @@
                 console.log('Security Perimeter:', securityPerimeter);
 
                 populateDropdowns();
-                displaySecurityPerimeter();
+                displaySecurityPerimeter(map);
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
@@ -125,35 +125,14 @@
             document.getElementById('calculate-route-btn').addEventListener('click', calculateRoute);
         }
 
-function displaySecurityPerimeter() {
-    const kmlFileId = '1BSJ_UBOXc3D5u7s2kwf4pqCZYC6Cdfbf';
-    const kmlUrl = `https://drive.google.com/uc?export=download&id=${kmlFileId}`;
-
-    fetch(kmlUrl)
-        .then(response => response.text())
-        .then(kmlData => {
-            const parser = new DOMParser();
-            const kml = parser.parseFromString(kmlData, 'text/xml');
-            const coordinates = kml.getElementsByTagName('coordinates')[0].textContent;
-            const perimeter = coordinates.split(' ').map(coord => {
-                const [lng, lat] = coord.split(',');
-                return { lat: parseFloat(lat), lng: parseFloat(lng) };
-            });
-
-            const securityPerimeterPath = new google.maps.Polygon({
-                paths: perimeter,
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#FF0000',
-                fillOpacity: 0.35
-            });
-
-            securityPerimeterPath.setMap(map);
-        })
-        .catch(error => {
-            console.error('Error fetching KML data:', error);
-        });
+function displaySecurityPerimeter(map) {
+    map.data.addGeoJson(securityPerimeterGeoJson);
+    map.data.setStyle({
+        fillColor: 'red',
+        fillOpacity: 0.2,
+        strokeColor: 'red',
+        strokeWeight: 2
+    });
 }
 
         function showHotelMarker() {
@@ -392,5 +371,6 @@ function displaySecurityPerimeter() {
         }
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBjlGkxN5JMqjBQn0Tb0HY-3hG8ACkITuM&libraries=geometry&callback=initMap" async defer></script>
+    <script src="securityPerimeter.js"></script>
 </body>
 </html>
